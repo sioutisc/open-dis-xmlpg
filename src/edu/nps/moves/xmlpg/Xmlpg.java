@@ -359,7 +359,7 @@ public class Xmlpg
             {
                 for(int idx = 0; idx < attributes.getLength(); idx++)
                 {
-                    cppProperties.setProperty(attributes.getQName(idx), attributes.getValue(idx));
+                    csharpProperties.setProperty(attributes.getQName(idx), attributes.getValue(idx));
                 }
             }
 
