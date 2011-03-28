@@ -7,7 +7,7 @@ import java.util.*;
  * Generates the Objective-C 2.0 language source code files needed to read and write a protocol described
  * by an XML file. This is a counterpart to the JavaGenerator. This should generate .h and
  * .m files with ivars, properties, etc. This is very closely tied to the Apple implementation
- * of Objc, and should work on OSX and the iPhone.<p>
+ * of Objc, and should work on OSX and ios.<p>
  *
  * The Objective-C 2.0 language is specified at http://developer.apple.com
  *
@@ -687,11 +687,31 @@ private void writeInitializer(PrintWriter pw, GeneratedClass aClass)
         // Set initial values
         List usedValues = new ArrayList();
 
+        for(int idx = 0; idx < aClass.getClassAttributes().size(); idx++)
+        {
+            ClassAttribute attribute = (ClassAttribute)aClass.getClassAttributes().get(idx);
+            if((attribute.getAttributeKind() == ClassAttribute.ClassAttributeType.PRIMITIVE))
+            {
+                if(attribute.getDefaultValue() != null)
+                {
+                   String setterName = "set" + this.initialCap(attribute.getName());
+                   //pw.println("    [self " + setterName + ":" + attribute.getDefaultValue() + "];");
+                   pw.println("    " +  attribute.getName() +" = " + attribute.getDefaultValue() + ";");
+                   usedValues.add(attribute.getName());
+                   System.out.println("----Found default value: " + setterName + " " + attribute.getDefaultValue());
+
+                }
+            }
+            
+        }
+
         List inits = aClass.getInitialValues();
         for(int idx = 0; idx < inits.size(); idx++)
         {
             InitialValue anInitialValue = (InitialValue)inits.get(idx);
             String setterName = anInitialValue.getSetterMethodName();
+
+            System.out.println("Found initial value: " + setterName + " " + anInitialValue.getVariableValue());
             pw.println("    [self " + setterName + ":" + anInitialValue.getVariableValue() + "];");
             usedValues.add(anInitialValue.getVariable());
         }
