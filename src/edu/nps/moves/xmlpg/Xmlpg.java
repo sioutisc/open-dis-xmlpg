@@ -72,6 +72,8 @@ public class Xmlpg
 
     /** Director in which the objc classes are created */
     private String objcDirectory = null;
+    
+    private int classCount = 0;
    
     /**
      * Create a new collection of Java objects by reading an XML file; these
@@ -123,6 +125,7 @@ public class Xmlpg
         // It is far from complete.
         if(!this.astIsPlausible())
         {
+            System.out.println("The generated XML file is not internally consistent according to astIsPlausible()");
             System.out.println("There are one or more errors in the XML file. See output for details.");
             System.exit(1);
         }
@@ -264,7 +267,7 @@ public class Xmlpg
                 {
                     if(primitiveTypes.contains(anAttribute.getType()) == false)
                     {
-                        System.out.println("Cannot find a primitive type of " + anAttribute.getType());
+                        System.out.println("Cannot find a primitive type of " + anAttribute.getType() + " in class " + aClass.getName());
                         return false;
                     }
                 }
@@ -274,7 +277,7 @@ public class Xmlpg
                 {
                     if(generatedClassNames.get(anAttribute.getType()) == null)
                     {
-                        //System.out.println("Makes reference to a class of name " + anAttribute.getType() + " but no user-defined class of that type can be found in the document");
+                        System.out.println("Makes reference to a class of name " + anAttribute.getType() + " in class " + aClass.getName() + " but no user-defined class of that type can be found in the document");
                         return false;
                     }
                     
@@ -343,6 +346,7 @@ public class Xmlpg
                 {
                     javaProperties.setProperty(attributes.getQName(idx), attributes.getValue(idx));
                 }
+                System.out.println("Got java properties of " + javaProperties);
             }
             
             // c++ element--place all the attributes and values into a property list
@@ -376,6 +380,8 @@ public class Xmlpg
             // and then prepare for reading attributes.
             if(qName.compareToIgnoreCase("class") == 0)
             {
+               classCount++;
+               //System.out.println("classCount is" + classCount);
                
                 currentGeneratedClass = new GeneratedClass();
                 
@@ -388,7 +394,7 @@ public class Xmlpg
                     // class name
                     if(attributes.getQName(idx).compareToIgnoreCase("name") == 0)
                     {
-                        System.out.println("Processing class named " + attributes.getValue(idx));
+                        System.out.println("--->Processing class named " + attributes.getValue(idx));
                         currentGeneratedClass.setName(attributes.getValue(idx));
                     }
                     
@@ -435,7 +441,7 @@ public class Xmlpg
                     if(attributes.getQName(idx).compareToIgnoreCase("name") == 0)
                     {
                         anAttributeName = attributes.getValue(idx);
-                        System.out.println("   in attribute " + attributes.getValue(idx));
+                        //System.out.println("   in attribute " + attributes.getValue(idx));
                     }
                     
                     // Initial value
@@ -468,14 +474,14 @@ public class Xmlpg
                     // Name of class attribute
                     if(attributes.getQName(idx).compareToIgnoreCase("name") == 0)
                     {
-                        System.out.println("    in attribute " + attributes.getValue(idx));
+                        //System.out.println("    in attribute " + attributes.getValue(idx));
                         currentClassAttribute.setName(attributes.getValue(idx));
                     }
                     
                     // Comment on class attribute
                     if(attributes.getQName(idx).compareToIgnoreCase("comment") == 0)
                     {
-                        System.out.println("    attribute comment:" + attributes.getValue(idx));
+                        //System.out.println("        attribute comment:" + attributes.getValue(idx));
                         currentClassAttribute.setComment(attributes.getValue(idx));
                     }
                 }
@@ -622,12 +628,16 @@ public class Xmlpg
             // We've reached the end of a class element. The class should be complete; add it to the hash table.
             if(qName.compareToIgnoreCase("class") == 0)
             {
+                classCount--;
+                //System.out.println("classCount is " + classCount);
+                System.out.println("---#End of class" + currentGeneratedClass.getName());
                 generatedClassNames.put(currentGeneratedClass.getName(), currentGeneratedClass);
             }
             
             // Reached the end on an attribute. Add the attribute to whatever the current class is.
             if(qName.compareToIgnoreCase("attribute") == 0)
             {
+                //System.out.println("     end attribute");
                 currentGeneratedClass.addClassAttribute(currentClassAttribute);
             }
         }

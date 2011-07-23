@@ -389,7 +389,7 @@ public class JavaGenerator extends Generator
     
                 pw.print("   protected " + attributeType + "  " + anAttribute.getName());
                 if(defaultValue != null)
-                    pw.print(" = " + defaultValue);
+                    pw.print(" = (" + attributeType + ")" + defaultValue); // Needs cast to primitive type for float/double issues
                 pw.println(";\n");
             } // end of primitive attribute type
             
@@ -1136,7 +1136,7 @@ public class JavaGenerator extends Generator
                         capped = "";    // ByteBuffer just has put() for bytesf
                     }
                     //pw.println("           dos.write" + capped + "(" + anAttribute.getName() + "[idx]);");
-                    pw.println("           buff.put" + capped + "(" + anAttribute.getName() + "[idx]);");
+                    pw.println("           buff.put" + capped + "((" + marshalType + ")" + anAttribute.getName() + "[idx]);"); // have to cast to right type
                 }
                 else
                 {
