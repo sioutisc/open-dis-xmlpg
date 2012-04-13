@@ -275,12 +275,21 @@ public void writeHeaderFile(GeneratedClass aClass)
         if(aClass.getClassComments() != null)
         {
             pw.println("// " + aClass.getClassComments() );
-            pw.println();
-            pw.println("// Copyright (c) 2007-2009, MOVES Institute, Naval Postgraduate School. All rights reserved. ");
-            pw.println("//");
-            pw.println("// @author DMcG, jkg");
+        }
+        
+        pw.println();
+        pw.println("// Copyright (c) 2007-2012, MOVES Institute, Naval Postgraduate School. All rights reserved. ");
+        pw.println("// Licensed under the BSD open source license. See http://www.movesinstitute.org/licenses/bsd.html");
+        pw.println("//");
+        pw.println("// @author DMcG, jkg");
+        pw.println();
+        
+        if(hasVariableLengthList == true)
+        {
+            pw.println("#pragma warning(disable: 4251 ) // Disables warning for stl vector template DLL export in msvc");
             pw.println();
         }
+            
         
          // Print out class header and ivars
         
@@ -774,15 +783,16 @@ private void writeCtor(PrintWriter pw, GeneratedClass aClass)
     pw.print(aClass.getName() + "::" + aClass.getName() + "()");
     
     // Need to do a pre-flight here; cycle throguh the attributes and get a count
-    // of the attribtes that are either primitives or objects. The variable lists
-    // and fixed length lists are not initialized in the initializer list.
+    // of the attribtes that are either primitives or objects. The 
+    // fixed length lists are not initialized in the initializer list.
     int attributeCount = 0;
     
     for(int idx = 0; idx < aClass.getClassAttributes().size(); idx++)
     {
         ClassAttribute attribute = (ClassAttribute)aClass.getClassAttributes().get(idx);
         if((attribute.getAttributeKind() == ClassAttribute.ClassAttributeType.PRIMITIVE) ||
-           (attribute.getAttributeKind() == ClassAttribute.ClassAttributeType.CLASSREF))
+           (attribute.getAttributeKind() == ClassAttribute.ClassAttributeType.CLASSREF) ||
+           (attribute.getAttributeKind() == ClassAttribute.ClassAttributeType.VARIABLE_LIST))
         {
             attributeCount++;
         }
@@ -846,6 +856,19 @@ private void writeCtor(PrintWriter pw, GeneratedClass aClass)
                     pw.println(", "); // Every initiailizer list element should have a following comma except the last
                 }
             }
+            
+            // We need to allcoate ivars that are lists/vectors....
+            if(anAttribute.getAttributeKind() == ClassAttribute.ClassAttributeType.VARIABLE_LIST)
+            { 
+               // pw.print(" " + anAttribute.getName() + "( " + anAttribute.getType() + "())" );
+                pw.print("   " +  IVAR_PREFIX + anAttribute.getName() + "(0)" );
+                attributeCount--;
+                if(attributeCount != 0)
+                {
+                    pw.println(", "); // Every initiailizer list element should have a following comma except the last
+                }
+            }
+            
         } // end of loop through attributes
     
     pw.println("\n{");
