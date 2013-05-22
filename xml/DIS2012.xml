@@ -43,6 +43,10 @@
 <cpp namespace="DIS"
      directory="cpp/DIS"/>
 
+ <!-- IDL specific information. -->     
+<idl module="DIS"
+     directory="xmlgen/idl"/>
+
 <class name="AcousticEmitter" inheritsFrom="root" comment=" information about a specific UA emmtter. Section 6.2.2.">
     
     <attribute name="acousticName" comment="the system for a particular UA emitter, and an enumeration">
