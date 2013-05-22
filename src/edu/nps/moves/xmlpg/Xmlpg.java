@@ -31,7 +31,7 @@ public class Xmlpg
     protected HashMap generatedClassNames = new HashMap();
     
     /** The language types we generate */
-    public enum LanguageType {CPP, JAVA, CSHARP, OBJECTIVEC }
+    public enum LanguageType {CPP, JAVA, CSHARP, OBJECTIVEC, IDL }
     
     /** As we parse the XML document, this is the class we are currently working on */
     private GeneratedClass currentGeneratedClass = null;
@@ -53,6 +53,8 @@ public class Xmlpg
 
     /** Objective-C properties */
     Properties objcProperties = new Properties();
+    
+    Properties idlProperties = new Properties();
 
     /** source code generation options */
     Properties sourceGenerationOptions;
@@ -72,6 +74,10 @@ public class Xmlpg
 
     /** Director in which the objc classes are created */
     private String objcDirectory = null;
+
+    /** Director in which the objc classes are created */
+    private String idlDirectory = null;
+
     
     private int classCount = 0;
    
@@ -102,6 +108,10 @@ public class Xmlpg
         else if(languageToGenerate.equalsIgnoreCase("csharp"))
         {
             toGenerate = Xmlpg.LanguageType.CSHARP;
+        }
+        else if(languageToGenerate.equalsIgnoreCase("idl"))
+        {
+            toGenerate = Xmlpg.LanguageType.IDL;
         }
 
         Properties sourceGenerationOptions = new Properties();
@@ -159,6 +169,12 @@ public class Xmlpg
             ObjcGenerator objcGenerator = new ObjcGenerator(generatedClassNames, objcProperties);
             objcGenerator.writeClasses();
         }
+        if(toGenerate == Xmlpg.LanguageType.IDL)
+        {
+            // create a new generator object for objc
+            IDLGenerator idlGenerator = new IDLGenerator(xmlDescriptionFileName, generatedClassNames, idlProperties);
+            idlGenerator.writeClasses();
+        }
     }
     
     /**
@@ -175,7 +191,7 @@ public class Xmlpg
         if(args.length < 2 || args.length > 2)
         {
             System.out.println("Usage: Xmlpg xmlFile language"); 
-            System.out.println("Allowable languages are java, cpp, objc, and csharp");
+            System.out.println("Allowable languages are java, cpp, objc, csharp and idl");
             System.exit(0);
         }
         
@@ -195,10 +211,14 @@ public class Xmlpg
             FileInputStream fis = new FileInputStream(xmlFile);
             fis.close();
             
-            if(!(language.equalsIgnoreCase("java") || language.equalsIgnoreCase("cpp") ||
-               language.equalsIgnoreCase("objc") || language.equalsIgnoreCase("csharp")))
+            if(!(language.equalsIgnoreCase("java") 
+            		|| language.equalsIgnoreCase("cpp") 
+            		|| language.equalsIgnoreCase("objc") 
+            		|| language.equalsIgnoreCase("csharp")
+            		|| language.equalsIgnoreCase("idl"))
+            		)
             {
-                System.out.println("Not a valid language to generate. The options are java, cpp, objc, and csharp");
+                System.out.println("Not a valid language to generate. The options are java, cpp, objc, csharp and idl");
                 System.out.println("Usage: Xmlpg xmlFile language"); 
                 System.exit(0);
             }
@@ -346,7 +366,7 @@ public class Xmlpg
                 {
                     javaProperties.setProperty(attributes.getQName(idx), attributes.getValue(idx));
                 }
-                System.out.println("Got java properties of " + javaProperties);
+                //System.out.println("Got java properties of " + javaProperties);
             }
             
             // c++ element--place all the attributes and values into a property list
@@ -375,6 +395,16 @@ public class Xmlpg
                     objcProperties.setProperty(attributes.getQName(idx), attributes.getValue(idx));
                 }
             }
+            
+            // idl element--place all the attributes and values into a property list
+            if(qName.equalsIgnoreCase("idl"))
+            {
+                for(int idx = 0; idx < attributes.getLength(); idx++)
+                {
+                    idlProperties.setProperty(attributes.getQName(idx), attributes.getValue(idx));
+                }
+            }
+            
             
             // We've hit the start of a class element. Pick up the attributes of this (name, and any comments)
             // and then prepare for reading attributes.
